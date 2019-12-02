@@ -1,5 +1,4 @@
 defmodule Day2 do
-
   def get_input do
     {:ok, result} = File.read("input.txt")
 
@@ -7,15 +6,36 @@ defmodule Day2 do
     |> Enum.map(fn x -> String.to_integer(x) end)
   end
 
-  def restore_program_state(input) do
-    input |> List.replace_at(1, 12) |> List.replace_at(2, 2)
+  def restore_program_state(input, first_input, second_input) do
+    input |> List.replace_at(1, first_input) |> List.replace_at(2, second_input)
   end
 
   def solve_part1() do
-    input = get_input() |> restore_program_state()
-    [ans| _] = do_solve_part1(input, 1, input)
-    IO.puts "Answer = #{ans}"
+    input = get_input() |> restore_program_state(12, 2)
+    [ans | _] = do_solve_part1(input, 1, input)
+    IO.puts("Answer = #{ans}")
     ans
+  end
+
+  def solve_part2() do
+    input = get_input()
+    params_pairs = 0..99 |> Enum.flat_map(fn x -> 0..99 |> Enum.map(fn y -> [x, y] end) end)
+
+    params_pairs
+    |> Enum.map(fn [x, y] ->
+      input = input |> restore_program_state(x, y)
+      [ans | _] = do_solve_part1(input, 1, input)
+
+      case ans do
+        19_690_720 ->
+          IO.puts("[#{x}, #{y}] = #{ans}")
+
+        _ ->
+          nil
+      end
+
+      ans
+    end)
   end
 
   def do_solve_part1([99 | _rest], _times, all_lines) do
@@ -33,6 +53,4 @@ defmodule Day2 do
     all_lines = all_lines |> List.replace_at(o, s)
     do_solve_part1(Enum.drop(all_lines, 4 * times), times + 1, all_lines)
   end
-
-
 end
