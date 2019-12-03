@@ -1,17 +1,10 @@
 defmodule Day3 do
-  @moduledoc """
-  Documentation for Day3.
-  """
+  def get_input do
+    {:ok, result} = File.read("input.txt")
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Day3.hello()
-      :world
-
-  """
+    String.split(result, [",", "\n"], trim: true)
+    |> Enum.map(fn x -> String.to_integer(x) end)
+  end
   def hello do
     :world
   end
