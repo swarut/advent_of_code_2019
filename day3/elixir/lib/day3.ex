@@ -8,12 +8,12 @@ defmodule Day3 do
 
   def solve_part1() do
     [input1, input2] = get_input()
-    s(input1, input2)
+    solve(input1, input2, fn {[x, y], _v} -> abs(x) + abs(y) end)
   end
 
-  def s(input1, input2) do
+  def solve(input1, input2, distance) do
     crossings = find_crossing(input1, input2)
-    distances = crossings |> Enum.map(fn {[x, y], _v} -> abs(x) + abs(y) end) |> Enum.sort()
+    distances = crossings |> Enum.map(distance) |> Enum.sort()
     [answer | _] = distances
     answer
   end
