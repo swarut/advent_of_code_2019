@@ -5,7 +5,16 @@ defmodule Day3 do
     String.split(result, [",", "\n"], trim: true)
     |> Enum.map(fn x -> String.to_integer(x) end)
   end
-  def hello do
-    :world
+
+  def solve_part1() do
+
+  end
+
+  def find_crossing(input1, input2) do
+    [input1, input2]
+  end
+
+  def expand_coordinates([x, y] = _origin, input) do
+
   end
 end
