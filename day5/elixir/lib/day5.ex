@@ -15,6 +15,7 @@ defmodule Day5 do
   def preprocess_input(input) do
     [head | rest] = input
     instruction = normalize_instruction(head)
+    IO.puts("INSTRUCTION = #{inspect(instruction)}")
     [instruction | rest]
   end
 
@@ -64,6 +65,94 @@ defmodule Day5 do
     )
   end
 
+  def process([[_m3, m2, m1, 5], p1, p2 | _rest], memory, last_cursor, acc) do
+    case get_value(m1, memory, p1) do
+      0 ->
+        last_cursor = last_cursor + 3
+
+        process(
+          preprocess_input(memory |> Enum.drop(last_cursor)),
+          memory,
+          last_cursor,
+          acc
+        )
+
+      _ ->
+        last_cursor = get_value(m2, memory, p2)
+
+        process(
+          preprocess_input(memory |> Enum.drop(last_cursor)),
+          memory,
+          last_cursor,
+          acc
+        )
+    end
+  end
+
+  def process([[_m3, m2, m1, 6], p1, p2 | _rest], memory, last_cursor, acc) do
+    case get_value(m1, memory, p1) do
+      0 ->
+        last_cursor = get_value(m2, memory, p2)
+
+        process(
+          preprocess_input(memory |> Enum.drop(last_cursor)),
+          memory,
+          last_cursor,
+          acc
+        )
+
+      _ ->
+        last_cursor = last_cursor + 3
+
+        process(
+          preprocess_input(memory |> Enum.drop(last_cursor)),
+          memory,
+          last_cursor,
+          acc
+        )
+    end
+  end
+
+  def process([[_m3, m2, m1, 7], p1, p2, p3 | _rest], memory, last_cursor, acc) do
+    s1 = get_value(m1, memory, p1)
+    s2 = get_value(m2, memory, p2)
+
+    memory =
+      cond do
+        s1 < s2 -> memory |> List.replace_at(p3, 1)
+        true -> memory |> List.replace_at(p3, 0)
+      end
+
+    last_cursor = last_cursor + 4
+
+    process(
+      preprocess_input(memory |> Enum.drop(last_cursor)),
+      memory,
+      last_cursor,
+      acc
+    )
+  end
+
+  def process([[_m3, m2, m1, 8], p1, p2, p3 | _rest], memory, last_cursor, acc) do
+    s1 = get_value(m1, memory, p1)
+    s2 = get_value(m2, memory, p2)
+
+    memory =
+      cond do
+        s1 == s2 -> memory |> List.replace_at(p3, 1)
+        true -> memory |> List.replace_at(p3, 0)
+      end
+
+    last_cursor = last_cursor + 4
+
+    process(
+      preprocess_input(memory |> Enum.drop(last_cursor)),
+      memory,
+      last_cursor,
+      acc
+    )
+  end
+
   def process([[_m3, _m2, _m1, 3], p1 | _rest], memory, last_cursor, acc) do
     val = IO.gets("Please input a number:") |> String.trim() |> String.to_integer()
     memory = memory |> List.replace_at(p1, val)
@@ -90,6 +179,7 @@ defmodule Day5 do
   end
 
   def process([[_m3, _m2, _m1, 99] | _rest], memory, _last_cursor, acc) do
+    IO.puts("------------------------- SHOULD END --------------")
     [acc, memory]
   end
 end

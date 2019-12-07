@@ -38,4 +38,34 @@ defmodule Day5Test do
     pp = Day5.preprocess_input(input)
     assert(Day5.process(pp, input, 0, []) == [[], [2, 3, 0, 6, 99]])
   end
+
+  test "process3" do
+    input = [5, 10, 3, 4, 2, 99]
+    pp = Day5.preprocess_input(input)
+    assert(Day5.process(pp, input, 0, []) == [[10], [5, 10, 3, 4, 2, 99]])
+  end
+
+  # test "process3" do
+  #   input = [3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8]
+  #   pp = Day5.preprocess_input(input)
+  #   assert(Day5.process(pp, input, 0, []) == [[1], [3, 9, 8, 9, 10, 9, 4, 9, 99, 1, 8]])
+  # end
+
+  # test "process4" do
+  #   input = [3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8]
+  #   pp = Day5.preprocess_input(input)
+  #   assert(Day5.process(pp, input, 0, []) == [[1], [3, 9, 7, 9, 10, 9, 4, 9, 99, 1, 8]])
+  # end
+
+  # test "process5" do
+  #   input = [3, 3, 1108, -1, 8, 3, 4, 3, 99]
+  #   pp = Day5.preprocess_input(input)
+  #   assert(Day5.process(pp, input, 0, []) == [[1], [3, 3, 1108, 1, 8, 3, 4, 3, 99]])
+  # end
+
+  # test "process5" do
+  #   input = [3, 3, 1107, -1, 8, 3, 4, 3, 99]
+  #   pp = Day5.preprocess_input(input)
+  #   assert(Day5.process(pp, input, 0, []) == [[1], [3, 3, 1107, 1, 8, 3, 4, 3, 99]])
+  # end
 end
