@@ -1,6 +1,5 @@
 defmodule Amplifier do
   def get_instructions do
-    # {:ok, result} = File.read("input2.txt")
     {:ok, result} = File.read("input.txt")
 
     String.split(result, [",", "\n"], trim: true)
@@ -19,7 +18,6 @@ defmodule Amplifier do
         []
       )
 
-    # IO.puts("Result = #{result}")
     result
   end
 
