@@ -1,5 +1,5 @@
 defmodule Day9 do
-  def get_input do
+  def get_instructions do
     {:ok, result} = File.read("input.txt")
 
     String.split(result, [",", "\n"], trim: true)
@@ -7,15 +7,15 @@ defmodule Day9 do
   end
 
   def solve_part1()  do
-    input = get_input()
-    [[result | _rest], _] = process(preprocess_input(input), input, 0, %{offset: 0}, [])
+    instructions = get_instructions()
+    [[result | _rest], _] = process(preprocess_instruction(instructions), instructions, 0, %{offset: 0}, [])
     IO.puts("Result = #{result}")
     result
   end
 
   # Preprocess input by converting the first item in the list from integer to list of digit.
-  def preprocess_input(input) do
-    [head | rest] = input
+  def preprocess_instruction(instructions) do
+    [head | rest] = instructions
     instruction = normalize_instruction(head)
     IO.puts("INSTRUCTION = #{inspect(instruction)}")
     [instruction | rest]
@@ -32,18 +32,18 @@ defmodule Day9 do
   end
 
   # Position mode
-  def get_value(0, input, kv, _options) do
-    input |> Enum.at(kv)
+  def get_value(0, memory, kv, _options) do
+    {:ok, memory |> Enum.at(kv)}
   end
 
   # Immediate mode
-  def get_value(1, _input, kv, _options) do
-    kv
+  def get_value(1, _memory, kv, _options) do
+    {:ok, kv}
   end
 
   # Relative mode
-  def get_value(2, input, kv, %{offset: offset}) do
-    input |> Enum.at(offset + kv)
+  def get_value(2, memory, kv, %{offset: offset}) do
+    {:ok, memory |> Enum.at(offset + kv)}
   end
 
   def process([[_m3, _m2, _m1, 9], p1 | _rest], memory, last_cursor, %{offset: offset} = options, acc) do
@@ -51,7 +51,7 @@ defmodule Day9 do
     last_cursor = last_cursor + 2
 
     process(
-      preprocess_input(memory |> Enum.drop(last_cursor)),
+      preprocess_instruction(memory |> Enum.drop(last_cursor)),
       memory,
       last_cursor,
       options,
@@ -60,12 +60,14 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 1], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
-    s = get_value(m1, memory, p1, options) + get_value(m2, memory, p2, options)
+    {:ok, s1} = get_value(m1, memory, p1, options)
+    {:ok, s2} = get_value(m2, memory, p2, options)
+    s = s1 + s2
     memory = memory |> List.replace_at(p3, s)
     last_cursor = last_cursor + 4
 
     process(
-      preprocess_input(memory |> Enum.drop(last_cursor)),
+      preprocess_instruction(memory |> Enum.drop(last_cursor)),
       memory,
       last_cursor,
       options,
@@ -74,12 +76,14 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 2], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
-    s = get_value(m1, memory, p1, options) * get_value(m2, memory, p2, options)
+    {:ok, s1} = get_value(m1, memory, p1, options)
+    {:ok, s2} = get_value(m2, memory, p2, options)
+    s = s1 * s2
     memory = memory |> List.replace_at(p3, s)
     last_cursor = last_cursor + 4
 
     process(
-      preprocess_input(memory |> Enum.drop(last_cursor)),
+      preprocess_instruction(memory |> Enum.drop(last_cursor)),
       memory,
       last_cursor,
       options,
@@ -88,12 +92,15 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 5], p1, p2 | _rest], memory, last_cursor, options, acc) do
-    last_cursor = case get_value(m1, memory, p1, options) do
+    {:ok, s} = get_value(m1, memory, p1, options)
+    last_cursor = case s do
       0 -> last_cursor + 3
-      _ -> get_value(m2, memory, p2, options)
+      _ ->
+        {:ok, l} = get_value(m2, memory, p2, options)
+        l
     end
     process(
-      preprocess_input(memory |> Enum.drop(last_cursor)),
+      preprocess_instruction(memory |> Enum.drop(last_cursor)),
       memory,
       last_cursor,
       options,
@@ -102,13 +109,16 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 6], p1, p2 | _rest], memory, last_cursor, options, acc) do
-    last_cursor = case get_value(m1, memory, p1, options) do
-      0 -> get_value(m2, memory, p2, options)
+    {:ok, s} = get_value(m1, memory, p1, options)
+    last_cursor = case s do
+      0 ->
+        {:ok, l} = get_value(m2, memory, p2, options)
+        l
       _ -> last_cursor + 3
     end
 
     process(
-      preprocess_input(memory |> Enum.drop(last_cursor)),
+      preprocess_instruction(memory |> Enum.drop(last_cursor)),
       memory,
       last_cursor,
       options,
@@ -117,8 +127,8 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 7], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
-    s1 = get_value(m1, memory, p1, options)
-    s2 = get_value(m2, memory, p2, options)
+    {:ok, s1} = get_value(m1, memory, p1, options)
+    {:ok, s2} = get_value(m2, memory, p2, options)
 
     memory =
       cond do
@@ -129,7 +139,7 @@ defmodule Day9 do
     last_cursor = last_cursor + 4
 
     process(
-      preprocess_input(memory |> Enum.drop(last_cursor)),
+      preprocess_instruction(memory |> Enum.drop(last_cursor)),
       memory,
       last_cursor,
       options,
@@ -138,8 +148,8 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 8], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
-    s1 = get_value(m1, memory, p1, options)
-    s2 = get_value(m2, memory, p2, options)
+    {:ok, s1} = get_value(m1, memory, p1, options)
+    {:ok, s2} = get_value(m2, memory, p2, options)
 
     memory =
       cond do
@@ -150,7 +160,7 @@ defmodule Day9 do
     last_cursor = last_cursor + 4
 
     process(
-      preprocess_input(memory |> Enum.drop(last_cursor)),
+      preprocess_instruction(memory |> Enum.drop(last_cursor)),
       memory,
       last_cursor,
       options,
@@ -164,7 +174,7 @@ defmodule Day9 do
     last_cursor = last_cursor + 2
 
     process(
-      preprocess_input(memory |> Enum.drop(last_cursor)),
+      preprocess_instruction(memory |> Enum.drop(last_cursor)),
       memory,
       last_cursor,
       options,
@@ -177,7 +187,7 @@ defmodule Day9 do
     last_cursor = last_cursor + 2
 
     process(
-      preprocess_input(memory |> Enum.drop(last_cursor)),
+      preprocess_instruction(memory |> Enum.drop(last_cursor)),
       memory,
       last_cursor,
       options,
