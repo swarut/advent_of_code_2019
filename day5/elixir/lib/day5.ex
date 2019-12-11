@@ -8,7 +8,9 @@ defmodule Day5 do
 
   def solve_part1()  do
     input = get_input()
-    process(preprocess_input(input), input, 0, [])
+    [[result | _rest], _] = process(preprocess_input(input), input, 0, [])
+    IO.puts("Result = #{result}")
+    result
   end
 
   # Preprocess input by converting the first item in the list from integer to list of digit.
@@ -66,51 +68,30 @@ defmodule Day5 do
   end
 
   def process([[_m3, m2, m1, 5], p1, p2 | _rest], memory, last_cursor, acc) do
-    case get_value(m1, memory, p1) do
-      0 ->
-        last_cursor = last_cursor + 3
-
-        process(
-          preprocess_input(memory |> Enum.drop(last_cursor)),
-          memory,
-          last_cursor,
-          acc
-        )
-
-      _ ->
-        last_cursor = get_value(m2, memory, p2)
-
-        process(
-          preprocess_input(memory |> Enum.drop(last_cursor)),
-          memory,
-          last_cursor,
-          acc
-        )
+    last_cursor = case get_value(m1, memory, p1) do
+      0 -> last_cursor + 3
+      _ -> get_value(m2, memory, p2)
     end
+    process(
+      preprocess_input(memory |> Enum.drop(last_cursor)),
+      memory,
+      last_cursor,
+      acc
+    )
   end
 
   def process([[_m3, m2, m1, 6], p1, p2 | _rest], memory, last_cursor, acc) do
-    case get_value(m1, memory, p1) do
-      0 ->
-        last_cursor = get_value(m2, memory, p2)
-
-        process(
-          preprocess_input(memory |> Enum.drop(last_cursor)),
-          memory,
-          last_cursor,
-          acc
-        )
-
-      _ ->
-        last_cursor = last_cursor + 3
-
-        process(
-          preprocess_input(memory |> Enum.drop(last_cursor)),
-          memory,
-          last_cursor,
-          acc
-        )
+    last_cursor = case get_value(m1, memory, p1) do
+      0 -> get_value(m2, memory, p2)
+      _ -> last_cursor + 3
     end
+
+    process(
+      preprocess_input(memory |> Enum.drop(last_cursor)),
+      memory,
+      last_cursor,
+      acc
+    )
   end
 
   def process([[_m3, m2, m1, 7], p1, p2, p3 | _rest], memory, last_cursor, acc) do
@@ -179,7 +160,6 @@ defmodule Day5 do
   end
 
   def process([[_m3, _m2, _m1, 99] | _rest], memory, _last_cursor, acc) do
-    IO.puts("------------------------- SHOULD END --------------")
     [acc, memory]
   end
 end
