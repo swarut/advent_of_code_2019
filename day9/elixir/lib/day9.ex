@@ -52,7 +52,9 @@ defmodule Day9 do
 
   # Relative mode
   def get_value(2, memory, kv, %{offset: offset}) do
+
     value = memory |> Enum.at(offset + kv)
+    IO.puts("--------------- GETTING mode 2 for kv = #{kv} and offset = #{offset}, value= #{value}, memory length = #{length memory}")
 
     case value do
       nil -> {:error, memory, offset + kv}
@@ -109,6 +111,25 @@ defmodule Day9 do
     options = options |> Map.put(:offset, offset + s1)
     IO.puts("\t Param1 = #{p1}, Value1 = #{s1}")
     IO.puts("\t Change offset from #{offset} to #{offset + s1}")
+    last_cursor = last_cursor + 2
+    IO.puts("================================\n")
+
+    process(
+      preprocess_instruction(memory |> Enum.drop(last_cursor)),
+      memory,
+      last_cursor,
+      options,
+      acc
+    )
+  end
+
+  def process([[_m3, _m2, m1, 3], p1 | _rest], memory, last_cursor, options, acc) do
+    log(3, "", last_cursor, options[:offset])
+    {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
+    IO.puts("S1 = #{s1}")
+    IO.puts("\t Param1 = #{p1}, Value1 = #{s1}")
+    val = IO.gets("Please input a number:") |> String.trim() |> String.to_integer()
+    memory = memory |> set_value(s1, val)
     last_cursor = last_cursor + 2
     IO.puts("================================\n")
 
@@ -275,22 +296,6 @@ defmodule Day9 do
       end
 
     last_cursor = last_cursor + 4
-    IO.puts("================================\n")
-
-    process(
-      preprocess_instruction(memory |> Enum.drop(last_cursor)),
-      memory,
-      last_cursor,
-      options,
-      acc
-    )
-  end
-
-  def process([[_m3, _m2, _m1, 3], p1 | _rest], memory, last_cursor, options, acc) do
-    log(3, "", last_cursor, options[:offset])
-    val = IO.gets("Please input a number:") |> String.trim() |> String.to_integer()
-    memory = memory |> set_value(p1, val)
-    last_cursor = last_cursor + 2
     IO.puts("================================\n")
 
     process(
