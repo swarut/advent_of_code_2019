@@ -9,10 +9,11 @@ defmodule Day9 do
   def solve_part1() do
     instructions = get_instructions()
 
-    [[result | _rest], _] =
-      process(preprocess_instruction(instructions), instructions, 0, %{offset: 0}, [])
+    p = process(preprocess_instruction(instructions), instructions, 0, %{offset: 0}, [])
+    [[result | _rest], _] = p
 
-    IO.puts("Result = #{result}")
+    IO.puts("Result = #{inspect(result)}")
+    IO.puts("Result = #{inspect(p)}")
     result
   end
 
@@ -39,7 +40,7 @@ defmodule Day9 do
     value = memory |> Enum.at(kv)
 
     case value do
-      nil -> {:error, memory, 0, kv}
+      nil -> {:error, memory, kv}
       _ -> {:ok, memory, value}
     end
   end
@@ -54,33 +55,62 @@ defmodule Day9 do
     value = memory |> Enum.at(offset + kv)
 
     case value do
-      nil -> {:error, memory, 0, offset + kv}
+      nil -> {:error, memory, offset + kv}
       _ -> {:ok, memory, value}
     end
+  end
+
+  def set_value(memory, position, value) do
+    IO.puts("\t [set value] #{value} at position #{position}")
+
+    cond do
+      position > length(memory) ->
+        expand(memory, position)
+
+      true ->
+        memory
+    end
+    |> List.replace_at(position, value)
+  end
+
+  def expand(memory, position) do
+    IO.puts("\t Expanding memory to position #{position}")
+    space_needed = position - length(memory) + 1
+    allocated = List.duplicate(0, space_needed)
+    memory ++ allocated
   end
 
   def expand_memory_if_needed({:ok, memory, value}) do
     {value, memory}
   end
 
-  def expand_memory_if_needed({:error, memory, value, position}) do
-    space_needed = position - length(memory) + 1
-    IO.puts("Memory access at #{position}, space_needed = #{space_needed}")
-    allocated = List.duplicate(0, space_needed)
-    memory = memory ++ allocated
-    IO.puts("UPDATED MEMORY = #{inspect(memory)}")
-    {value, memory ++ allocated}
+  def expand_memory_if_needed({:error, memory, position}) do
+    IO.puts("EXPAND MEMORY")
+    memory = expand(memory, position)
+    {0, memory}
+  end
+
+  def log(inst, modes, last_cursor, offset) do
+    IO.puts("Processing instruction #{inst}::")
+    IO.puts(":: Mode: #{modes}")
+    IO.puts(":: Last cursor = #{last_cursor}")
+    IO.puts(":: Offset = #{offset}")
   end
 
   def process(
-        [[_m3, _m2, _m1, 9], p1 | _rest],
+        [[_m3, _m2, m1, 9], p1 | _rest],
         memory,
         last_cursor,
         %{offset: offset} = options,
         acc
       ) do
-    options = options |> Map.put(:offset, offset + p1)
+    log(9, "m1 = #{m1}", last_cursor, offset)
+    {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
+    options = options |> Map.put(:offset, offset + s1)
+    IO.puts("\t Param1 = #{p1}, Value1 = #{s1}")
+    IO.puts("\t Change offset from #{offset} to #{offset + s1}")
     last_cursor = last_cursor + 2
+    IO.puts("================================\n")
 
     process(
       preprocess_instruction(memory |> Enum.drop(last_cursor)),
@@ -92,11 +122,17 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 1], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
+    log(1, "m1 = #{m1}, m2 = #{m2}", last_cursor, options[:offset])
     {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
     {s2, memory} = get_value(m2, memory, p2, options) |> expand_memory_if_needed()
     s = s1 + s2
-    memory = memory |> List.replace_at(p3, s)
+    IO.puts("\t Param1 = #{p1}, Value1 = #{s1}")
+    IO.puts("\t Param2 = #{p2}, Value2 = #{s2}")
+    IO.puts("\t Param3 = #{p3}")
+    IO.puts("\t Compute #{s1} + #{s2} = #{s}, then save to slot #{p3}")
+    memory = memory |> set_value(p3, s)
     last_cursor = last_cursor + 4
+    IO.puts("================================\n")
 
     process(
       preprocess_instruction(memory |> Enum.drop(last_cursor)),
@@ -108,11 +144,17 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 2], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
+    log(2, "m1 = #{m1}, m2 = #{m2}", last_cursor, options[:offset])
     {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
     {s2, memory} = get_value(m2, memory, p2, options) |> expand_memory_if_needed()
     s = s1 * s2
-    memory = memory |> List.replace_at(p3, s)
+    IO.puts("\t Param1 = #{p1}, Value1 = #{s1}")
+    IO.puts("\t Param2 = #{p2}, Value2 = #{s2}")
+    IO.puts("\t Param3 = #{p3}")
+    IO.puts("\t Compute #{s1} * #{s2} = #{s}, then save to slot #{p3}")
+    memory = memory |> set_value(p3, s)
     last_cursor = last_cursor + 4
+    IO.puts("================================\n")
 
     process(
       preprocess_instruction(memory |> Enum.drop(last_cursor)),
@@ -124,16 +166,25 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 5], p1, p2 | _rest], memory, last_cursor, options, acc) do
+    log(5, "m1 = #{m1}, m2 = #{m2}", last_cursor, options[:offset])
     {s, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
+    IO.puts("\t Param1 = #{p1}, Value1 = #{s}")
+    IO.puts("\t Param2 = #{p2}")
+    IO.puts("\t Check if #{s} != 0 or not?")
 
     {last_cursor, memory} =
       case s do
         0 ->
+          IO.puts("\t - #{0} is equal to 0, do nothing")
           {last_cursor + 3, memory}
 
         _ ->
+          IO.puts("\t - #{0} is not equal to 0 jump to next cursor")
           get_value(m2, memory, p2, options) |> expand_memory_if_needed()
       end
+
+    IO.puts("\t Next cursor = #{last_cursor}")
+    IO.puts("================================\n")
 
     process(
       preprocess_instruction(memory |> Enum.drop(last_cursor)),
@@ -145,16 +196,24 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 6], p1, p2 | _rest], memory, last_cursor, options, acc) do
+    log(6, "m1 = #{m1}, m2 = #{m2}", last_cursor, options[:offset])
     {s, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
+    IO.puts("\t Param1 = #{p1}, Value1 = #{s}")
+    IO.puts("\t Param2 = #{p2}")
+    IO.puts("\t Check if #{s} == 0 or not?}")
 
     {last_cursor, memory} =
       case s do
         0 ->
+          IO.puts("\t - #{0} is equal to 0, jump to next cursor")
           get_value(m2, memory, p2, options) |> expand_memory_if_needed()
 
         _ ->
+          IO.puts("\t - #{0} is not equal to 0, do nothing")
           {last_cursor + 3, memory}
       end
+
+    IO.puts("================================\n")
 
     process(
       preprocess_instruction(memory |> Enum.drop(last_cursor)),
@@ -166,16 +225,26 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 7], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
+    log(7, "m1 = #{m1}, m2 = #{m2}", last_cursor, options[:offset])
     {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
     {s2, memory} = get_value(m2, memory, p2, options) |> expand_memory_if_needed()
+    IO.puts("\t Param1 = #{p1}, Value1 = #{s1}")
+    IO.puts("\t Param2 = #{p2}, Value2 = #{s2}")
+    IO.puts("\t Param3 = #{p3}")
+    IO.puts("\t Check if #{s1} < #{s2} or not")
 
     memory =
       cond do
-        s1 < s2 -> memory |> List.replace_at(p3, 1)
-        true -> memory |> List.replace_at(p3, 0)
+        s1 < s2 ->
+          IO.puts("\t - #{s1} < #{s2}, store 1 at #{p3}")
+          memory |> set_value(p3, 1)
+        true ->
+          IO.puts("\t - #{s1} >= #{s2}, store 0 at #{p3}")
+          memory |> set_value(p3, 0)
       end
 
     last_cursor = last_cursor + 4
+    IO.puts("================================\n")
 
     process(
       preprocess_instruction(memory |> Enum.drop(last_cursor)),
@@ -187,16 +256,26 @@ defmodule Day9 do
   end
 
   def process([[_m3, m2, m1, 8], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
+    log(8, "m1 = #{m1}, m2 = #{m2}", last_cursor, options[:offset])
     {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
     {s2, memory} = get_value(m2, memory, p2, options) |> expand_memory_if_needed()
+    IO.puts("\t Param1 = #{p1}, Value1 = #{s1}")
+    IO.puts("\t Param2 = #{p2}, Value2 = #{s2}")
+    IO.puts("\t Param3 = #{p3}")
+    IO.puts("\t Check if #{s1} == #{s2} or not, if yes, store 1 at #{p3}")
 
     memory =
       cond do
-        s1 == s2 -> memory |> List.replace_at(p3, 1)
-        true -> memory |> List.replace_at(p3, 0)
+        s1 == s2 ->
+          IO.puts("\t - #{s1} == #{s2}, store 1 at #{p3}")
+          memory |> set_value(p3, 1)
+        true ->
+          IO.puts("\t - #{s1} != #{s2}, store 0 at #{p3}")
+          memory |> set_value(p3, 0)
       end
 
     last_cursor = last_cursor + 4
+    IO.puts("================================\n")
 
     process(
       preprocess_instruction(memory |> Enum.drop(last_cursor)),
@@ -208,9 +287,11 @@ defmodule Day9 do
   end
 
   def process([[_m3, _m2, _m1, 3], p1 | _rest], memory, last_cursor, options, acc) do
+    log(3, "", last_cursor, options[:offset])
     val = IO.gets("Please input a number:") |> String.trim() |> String.to_integer()
-    memory = memory |> List.replace_at(p1, val)
+    memory = memory |> set_value(p1, val)
     last_cursor = last_cursor + 2
+    IO.puts("================================\n")
 
     process(
       preprocess_instruction(memory |> Enum.drop(last_cursor)),
@@ -222,9 +303,13 @@ defmodule Day9 do
   end
 
   def process([[_m3, _m2, m1, 4], p1 | _rest], memory, last_cursor, options, acc) do
+    log(4, "m1 = #{m1}", last_cursor, options[:offset])
     {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
+    IO.puts("\t Param1 = #{p1}, Value1 = #{s1}")
+    IO.puts("\t Output  value at slot #{s1}")
     acc = [s1 | acc]
     last_cursor = last_cursor + 2
+    IO.puts("================================\n")
 
     process(
       preprocess_instruction(memory |> Enum.drop(last_cursor)),
@@ -236,6 +321,8 @@ defmodule Day9 do
   end
 
   def process([[_m3, _m2, _m1, 99] | _rest], memory, _last_cursor, _options, acc) do
+    log(99, "", "", "")
+    IO.puts("================================\n")
     [acc |> Enum.reverse(), memory]
   end
 end
