@@ -37,6 +37,13 @@ defmodule Day9 do
     |> Map.get(:list)
   end
 
+  def get_write_position(p1, mode, %{relative_base: relative_base}) do
+    case mode do
+      0 -> p1
+      2 -> p1 + relative_base
+    end
+  end
+
   # Position mode
   def get_value(0, memory, kv, _options) do
     value = memory |> Enum.at(kv)
@@ -131,8 +138,8 @@ defmodule Day9 do
 
   def process([[_m3, _m2, m1, 3], p1 | _rest], memory, last_cursor, options, acc) do
     log(3, "m1 = #{m1}", last_cursor, options[:relative_base])
-    {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
-    IEx.pry()
+    # {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
+    s1 = get_write_position(p1, m1, options)
     IO.puts("S1 = #{s1}")
     IO.puts("\t Param1 = #{p1}, Value1 = #{s1}")
     val = IO.gets("Please input a number:") |> String.trim() |> String.to_integer()
@@ -149,7 +156,7 @@ defmodule Day9 do
     )
   end
 
-  def process([[_m3, m2, m1, 1], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
+  def process([[m3, m2, m1, 1], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
     log(1, "m1 = #{m1}, m2 = #{m2}", last_cursor, options[:relative_base])
     {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
     {s2, memory} = get_value(m2, memory, p2, options) |> expand_memory_if_needed()
@@ -158,7 +165,7 @@ defmodule Day9 do
     IO.puts("\t Param2 = #{p2}, Value2 = #{s2}")
     IO.puts("\t Param3 = #{p3}")
     IO.puts("\t Compute #{s1} + #{s2} = #{s}, then save to slot #{p3}")
-    memory = memory |> set_value(p3, s)
+    memory = memory |> set_value(get_write_position(p3, m3, options), s)
     last_cursor = last_cursor + 4
     IO.puts("================================\n")
 
@@ -171,7 +178,7 @@ defmodule Day9 do
     )
   end
 
-  def process([[_m3, m2, m1, 2], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
+  def process([[m3, m2, m1, 2], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
     log(2, "m1 = #{m1}, m2 = #{m2}", last_cursor, options[:relative_base])
     {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
     {s2, memory} = get_value(m2, memory, p2, options) |> expand_memory_if_needed()
@@ -180,7 +187,7 @@ defmodule Day9 do
     IO.puts("\t Param2 = #{p2}, Value2 = #{s2}")
     IO.puts("\t Param3 = #{p3}")
     IO.puts("\t Compute #{s1} * #{s2} = #{s}, then save to slot #{p3}")
-    memory = memory |> set_value(p3, s)
+    memory = memory |> set_value(get_write_position(p3, m3, options), s)
     last_cursor = last_cursor + 4
     IO.puts("================================\n")
 
@@ -252,7 +259,7 @@ defmodule Day9 do
     )
   end
 
-  def process([[_m3, m2, m1, 7], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
+  def process([[m3, m2, m1, 7], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
     log(7, "m1 = #{m1}, m2 = #{m2}", last_cursor, options[:relative_base])
     {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
     {s2, memory} = get_value(m2, memory, p2, options) |> expand_memory_if_needed()
@@ -265,11 +272,11 @@ defmodule Day9 do
       cond do
         s1 < s2 ->
           IO.puts("\t - #{s1} < #{s2}, store 1 at #{p3}")
-          memory |> set_value(p3, 1)
+          memory |> set_value(get_write_position(p3, m3, options), 1)
 
         true ->
           IO.puts("\t - #{s1} >= #{s2}, store 0 at #{p3}")
-          memory |> set_value(p3, 0)
+          memory |> set_value(get_write_position(p3, m3, options), 0)
       end
 
     last_cursor = last_cursor + 4
@@ -284,7 +291,7 @@ defmodule Day9 do
     )
   end
 
-  def process([[_m3, m2, m1, 8], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
+  def process([[m3, m2, m1, 8], p1, p2, p3 | _rest], memory, last_cursor, options, acc) do
     log(8, "m1 = #{m1}, m2 = #{m2}", last_cursor, options[:relative_base])
     {s1, memory} = get_value(m1, memory, p1, options) |> expand_memory_if_needed()
     {s2, memory} = get_value(m2, memory, p2, options) |> expand_memory_if_needed()
@@ -297,11 +304,11 @@ defmodule Day9 do
       cond do
         s1 == s2 ->
           IO.puts("\t - #{s1} == #{s2}, store 1 at #{p3}")
-          memory |> set_value(p3, 1)
+          memory |> set_value(get_write_position(p3, m3, options), 1)
 
         true ->
           IO.puts("\t - #{s1} != #{s2}, store 0 at #{p3}")
-          memory |> set_value(p3, 0)
+          memory |> set_value(get_write_position(p3, m3, options), 0)
       end
 
     last_cursor = last_cursor + 4
