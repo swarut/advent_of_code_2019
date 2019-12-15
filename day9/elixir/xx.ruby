@@ -6,7 +6,9 @@ def run(input)
   ip = 0
   rb = 0 # relative base
   loc = lambda {|i|
-    case (p[ip]/10**(i+1))%10
+    ll = (p[ip]/10**(i+1))%10
+    puts "-------ll = #{ll}"
+    case ll
     when 0
       p[ip+i]
     when 1
