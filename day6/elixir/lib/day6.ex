@@ -8,7 +8,6 @@ defmodule Day6 do
   def solve_both_parts() do
     children_lookup = preprocess_input(get_input())
     %{children_lookup: children_lookup, count: count} = solve(children_lookup)
-    IO.puts("COUNT = #{count}")
     distance(children_lookup, "YOU", "SAN")
   end
 
@@ -49,24 +48,16 @@ defmodule Day6 do
     |> Enum.reduce(%{children_lookup: children_lookup, count: 0}, fn child, acc ->
       child_data = acc[:children_lookup][child]
 
-      # IO.puts("CHILD = #{child}")
-
       %{parent_count: parent_count, all_parents: all_parents} =
         fill_meta(child_data, acc[:children_lookup], %{
           parent_count: 0,
           all_parents: child_data[:all_parents]
         })
 
-      # IO.puts("CHILD = #{child}, all parrents = #{inspect(all_parents)}")
-
       child_data =
         child_data
         |> Map.put(:all_parents_count, parent_count)
         |> Map.put(:all_parents, all_parents)
-
-      # IO.puts("CHILD data= #{inspect(child_data)}")
-      # IO.puts("\t================")
-      # IO.puts("\n\n")
 
       children_lookup = acc[:children_lookup] |> Map.put(child, child_data)
 
@@ -80,6 +71,7 @@ defmodule Day6 do
     [n1, n2]
   end
 
+  # Fill in the metadata (node name, parent, and all parent count) for the node
   def fill_meta(
         %{self: _self, parent: nil, all_parents_count: _all_parents_count},
         _children_lookup,
@@ -88,10 +80,6 @@ defmodule Day6 do
           all_parents: all_parents
         }
       ) do
-    # IO.puts("\tRoot")
-    # IO.puts(":: Fill #{self}")
-
-    # %{parent_count: parent_count, all_parents: [self | all_parents]}
     %{parent_count: parent_count, all_parents: all_parents}
   end
 
@@ -104,11 +92,6 @@ defmodule Day6 do
         }
       ) do
     next = children_lookup[parent]
-    # IO.puts("\tON_THE_PATH")
-
-    # IO.puts("\t\t current: #{inspect(current)}")
-
-    # IO.puts("\t\t next: #{inspect(next)}")
 
     fill_meta(next, children_lookup, %{
       parent_count: parent_count + 1,
@@ -127,11 +110,6 @@ defmodule Day6 do
         }
       ) do
     _next = children_lookup[parent]
-    # IO.puts("\tCACHED")
-
-    # IO.puts("\t\t current: #{inspect(current)}")
-
-    # IO.puts("\t\t next: #{inspect(next)}")
 
     %{
       parent_count: parent_count + count,
@@ -144,20 +122,13 @@ defmodule Day6 do
     n2_node = children_lookup[n2]
     parent1 = children_lookup[n1_node[:parent]]
     parent2 = children_lookup[n2_node[:parent]]
-    IO.puts("n 1 = #{inspect(n1_node)}")
-    IO.puts("n 2 = #{inspect(n2_node)}")
-    IO.puts("parent 1 = #{inspect(parent1)}")
-    IO.puts("parent 2 = #{inspect(parent2)}")
     closest_common_p = closest_common_parent(parent1[:all_parents], parent2[:all_parents], nil)
-    IO.puts("Closest common parent = #{closest_common_p}")
     closest_common_parent_node = children_lookup[closest_common_p]
-    IO.puts("Closest common parent node = #{inspect(closest_common_parent_node)}")
 
     distance_between =
       parent1[:all_parents_count] - closest_common_parent_node[:all_parents_count] +
         (parent2[:all_parents_count] - closest_common_parent_node[:all_parents_count])
 
-    IO.puts("DESIRED DISTANCE = #{distance_between}")
   end
 
   def closest_common_parent([parent1 | rest1], [parent2 | rest2], _acc) when parent1 == parent2 do
